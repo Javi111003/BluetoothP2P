@@ -1,5 +1,10 @@
-def main():
-    print("Bienvenido a la aplicación de consola de Bluetooth P2P Redes 2024")
+import os  # To work with the file system
+import time  # To handle wait times
+from watchdog.observers import Observer  # Observer to monitor changes in directories
+from watchdog.events import FileSystemEventHandler  # Event handler for file changes
 
-if __name__ == "__main__":
-    main()
+# Configuration of the synchronization folder
+SYNC_FOLDER = "./sync_folder"  # Path to the local folder for synchronization
+os.makedirs(SYNC_FOLDER, exist_ok=True)  # Creates the folder if it does not exist
+
+print(f"Synchronization folder configured: {SYNC_FOLDER}")
