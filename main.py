@@ -7,19 +7,22 @@ from watchdog.events import FileSystemEventHandler  # Event handler for file cha
 
 # Configuration
 SYNC_FOLDER = "./sync_folder"  
-peer_addr = "XX:XX:XX:XX:XX:XX"
-local_addr = "YY:YY:YY:YY:YY:YY"
+peer_addr = "F4:6A:DD:6C:6B:B2"
+local_addr = "84:7B:57:73:E6:F9"
 port = 30
 os.makedirs(SYNC_FOLDER, exist_ok=True)  
 class SyncHandler(FileSystemEventHandler):
-    
+
     def __init__(self, send_change):
         self.send_change = send_change 
 
     def on_any_event(self, event):
-        if event.is_directory:  
+        if event.is_directory:
             return
-        self.send_change(event)  
+        self.send_change(event)
+
+    def on_moved(self, event):
+        self.send_change(event)
 
 def send_change(event):
     try:
@@ -30,6 +33,8 @@ def send_change(event):
                 "src_path": os.path.relpath(event.src_path, SYNC_FOLDER),
                 "is_directory": event.is_directory,
             }
+            if event.event_type == "moved": 
+                change_info["dest_path"] = os.path.relpath(event.dest_path, SYNC_FOLDER)
             if event.event_type == "modified" or event.event_type == "created":
                 with open(event.src_path, "rb") as f:
                     file_data = f.read()
@@ -45,6 +50,10 @@ def apply_change(change_info):
         if change_info["event"] == "deleted":
             if os.path.exists(path):
                 os.remove(path)
+        elif change_info["event"] == "moved": 
+            dest_path = os.path.join(SYNC_FOLDER, change_info["dest_path"]) 
+            if os.path.exists(path): 
+                os.rename(path, dest_path)
         elif change_info["event"] in ["created", "modified"]:
             os.makedirs(os.path.dirname(path), exist_ok=True)
             with open(path, "wb") as f:
